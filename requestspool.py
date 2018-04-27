@@ -7,6 +7,11 @@ import os
 
 import requests
 
+__author__  = "ccc032"
+__license__ = "GPLv3"
+__version__ = "0.1.0"
+__email__   = "ym96@protonmail.ch"
+
 
 def _split_items(iterable, split_in):
     """Split iterable sequence of items into even subsequences.
