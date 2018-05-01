@@ -36,6 +36,10 @@ def _split_items(iterable, split_in):
         yield iterable[i::split_in]
 
 
+def _flatten_or_not(flatten, iterable):
+    return [i for sub in iterable for i in sub] if flatten else iterable
+
+
 class RequestsPool(object):
     """Multiprocessing pool providing a unique request session per process.
 
@@ -99,7 +103,7 @@ class RequestsPool(object):
         special = self.special_func(*self.special_args, *self.special_kwargs)
         return [func(*item, special) for item in subsequence]
 
-    def map(self, func, iterable, chunksize=None):
+    def map(self, func, iterable, chunksize=None, flatten=True):
         """Run _map_wrap_func functions, each with split chunks of iterable.
 
         Example:
@@ -113,34 +117,38 @@ class RequestsPool(object):
             >>> with requestspool.RequestsPool(2) as rp:
             ...     print(rp.map(get_url, URLS))
             ...
-            [[<Response [200]>, <Response [200]>], [<Response [200]>]]
+            [<Response [200]>, <Response [200]>, <Response [200]>]
         """
-        return self.pool.starmap(
+        return _flatten_or_not(flatten, self.pool.starmap(
             self._map_wrap_func,
             itertools.product((func,), _split_items(iterable, self.processes)),
             chunksize
-        )
+        ))
 
-    def starmap(self, func, iterable, chunksize=None):
+    def starmap(self, func, iterable, chunksize=None, flatten=True):
         """Same as map(), but run _map_starmap_func instead.
 
         Example:
-            Get three pages in parallel and pass a same timeout parameter
-            to all target function calls:
+            Get three pages in parallel, pass a same timeout parameter
+            to all target function calls, get each processes's results in their
+            own sublist:
 
             >>> from itertools import product
+
             >>> URLS = ("https://pypi.org/", "https://git.io",
             ...         "https://gentoo.org")
+
             >>> def get_url_timeout(url, timeout, session):
             ...     return session.get(url, timeout=timeout)
             ...
             >>> with requestspool.RequestsPool(3) as rp:
-            ...    print(rp.starmap(get_url_timeout, product(URLS, (6,))))
+            ...    print(rp.starmap(get_url_timeout,
+            ...                     product(URLS, [6]), flatten=False))
             ...
             [[<Response [200]>], [<Response [200]>], [<Response [200]>]]
         """
-        return self.pool.starmap(
+        return _flatten_or_not(flatten, self.pool.starmap(
             self._starmap_wrap_func,
             itertools.product((func,), _split_items(iterable, self.processes)),
             chunksize
-        )
+        ))
