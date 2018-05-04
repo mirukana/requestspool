@@ -9,7 +9,7 @@ import requests
 
 __author__  = "ccc032"
 __license__ = "GPLv3"
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 __email__   = "ym96@protonmail.ch"
 
 
