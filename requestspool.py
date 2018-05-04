@@ -96,11 +96,11 @@ class RequestsPool(object):
         return self_dict
 
     def _map_wrap_func(self, func, subsequence):
-        special = self.special_func(*self.special_args, *self.special_kwargs)
+        special = self.special_func(*self.special_args, **self.special_kwargs)
         return [func(item, special) for item in subsequence]
 
     def _starmap_wrap_func(self, func, subsequence):
-        special = self.special_func(*self.special_args, *self.special_kwargs)
+        special = self.special_func(*self.special_args, **self.special_kwargs)
         return [func(*item, special) for item in subsequence]
 
     def map(self, func, iterable, chunksize=None, flatten=True):
